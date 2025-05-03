@@ -52,10 +52,7 @@ const URI = process.env.MongoDBURI;
 
 // Connect to MongoDB and start server
 mongoose
-  .connect(URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(URI)
   .then(async () => {
     console.log("✅ Connected to MongoDB");
 
