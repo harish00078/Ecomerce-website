@@ -5,6 +5,7 @@ import { filter } from "../utils/data";
 import { CircularProgress, Slider } from "@mui/material";
 import { getAllProducts } from "../api";
 
+// Styled Components
 const Container = styled.div`
   padding: 20px 30px;
   height: 100vh;
@@ -19,6 +20,7 @@ const Container = styled.div`
   }
   background: ${({ theme }) => theme.bg};
 `;
+
 const Filters = styled.div`
   width: 100%;
   height: fit-content;
@@ -30,21 +32,25 @@ const Filters = styled.div`
     overflow-y: scroll;
   }
 `;
+
 const FilterSection = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 12px;
 `;
+
 const Title = styled.div`
   font-size: 20px;
   font-weight: 500;
 `;
+
 const Menu = styled.div`
   display: flex;
   flex-direction: column;
   gap: 4px;
 `;
+
 const Products = styled.div`
   padding: 12px;
   overflow: hidden;
@@ -55,6 +61,7 @@ const Products = styled.div`
     height: 100%;
   }
 `;
+
 const CardWrapper = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -83,10 +90,10 @@ const SelectableItem = styled.div`
   ${({ selected, theme }) =>
     selected &&
     `
-  border: 1px solid ${theme.text_primary};
-  color: ${theme.text_primary};
-  background: ${theme.text_primary + 30};
-  font-weight: 500;
+    border: 1px solid ${theme.text_primary};
+    color: ${theme.text_primary};
+    background: ${theme.text_primary + 30};
+    font-weight: 500;
   `}
 `;
 
@@ -94,13 +101,13 @@ const ShopListing = () => {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 1000]);
-  const [selectedSizes, setSelectedSizes] = useState(["S", "M", "L", "XL"]);
-  const [selectedCategories, setSelectedCategories] = useState([
-    "Men",
-    "Women",
-    "Kids",
-    "Bags",
-  ]);
+
+  // Dynamically extract from `filter`
+  const allSizes = filter.find(f => f.value === "size")?.items || [];
+  const allCategories = filter.find(f => f.value === "category")?.items || [];
+
+  const [selectedSizes, setSelectedSizes] = useState(allSizes);
+  const [selectedCategories, setSelectedCategories] = useState(allCategories);
 
   const buildQueryString = useCallback(() => {
     const params = new URLSearchParams();
@@ -128,7 +135,6 @@ const ShopListing = () => {
       setProducts(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
-      // Show error message to user
       setProducts([]);
     } finally {
       setLoading(false);
@@ -138,7 +144,7 @@ const ShopListing = () => {
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       getFilteredProductsData();
-    }, 300); // Debounce for 300ms
+    }, 300);
 
     return () => clearTimeout(debounceTimer);
   }, [getFilteredProductsData]);
@@ -148,21 +154,17 @@ const ShopListing = () => {
   }, []);
 
   const handleSizeChange = useCallback((size) => {
-    setSelectedSizes((prev) => {
-      if (prev.includes(size)) {
-        return prev.filter((s) => s !== size);
-      }
-      return [...prev, size];
-    });
+    setSelectedSizes((prev) =>
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
+    );
   }, []);
 
   const handleCategoryChange = useCallback((category) => {
-    setSelectedCategories((prev) => {
-      if (prev.includes(category)) {
-        return prev.filter((c) => c !== category);
-      }
-      return [...prev, category];
-    });
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
+    );
   }, []);
 
   return (
@@ -177,20 +179,18 @@ const ShopListing = () => {
                 <FilterSection key={filters.name}>
                   <Title>{filters.name}</Title>
                   {filters.value === "price" ? (
-                    <>
-                      <Slider
-                        getAriaLabel={() => "Price range"}
-                        defaultValue={priceRange}
-                        min={0}
-                        max={1000}
-                        valueLabelDisplay="auto"
-                        marks={[
-                          { value: 0, label: "$0" },
-                          { value: 1000, label: "$1000" },
-                        ]}
-                        onChange={(e, newValue) => handlePriceChange(newValue)}
-                      />
-                    </>
+                    <Slider
+                      getAriaLabel={() => "Price range"}
+                      defaultValue={priceRange}
+                      min={0}
+                      max={1000}
+                      valueLabelDisplay="auto"
+                      marks={[
+                        { value: 0, label: "$0" },
+                        { value: 1000, label: "$1000" },
+                      ]}
+                      onChange={(e, newValue) => handlePriceChange(newValue)}
+                    />
                   ) : filters.value === "size" ? (
                     <Item>
                       {filters.items.map((item) => (
