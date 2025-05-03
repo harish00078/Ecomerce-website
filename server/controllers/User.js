@@ -24,7 +24,7 @@ export const UserRegister = async (req, res, next) => {
       password: hashedpassword,
       img,
     });
-    const createduser = user.save();
+    const createduser = await user.save();
     const token = jwt.sign({ id: createduser._id }, process.env.JWT, {
       expiresIn: "9999 years",
     });
@@ -122,14 +122,39 @@ export const removeFromCart = async (req, res, next) => {
 export const getAllCartItems = async (req, res, next) => {
   try {
     const userJWT = req.user;
-    const user = await User.findById(userJWT.id).populate({
-      path: "cart.product",
-      model: "Products",
-    });
-    const cartItems = user.cart;
-    return res.status(200).json(cartItems);
+    if (!userJWT || !userJWT.id) {
+      return next(createError(401, "User not authenticated"));
+    }
+
+    const user = await User.findById(userJWT.id);
+    if (!user) {
+      return next(createError(404, "User not found"));
+    }
+
+    try {
+      const populatedUser = await User.findById(userJWT.id).populate({
+        path: "cart.product",
+        model: "Products",
+      });
+
+      if (!populatedUser) {
+        return next(createError(404, "Failed to populate cart items"));
+      }
+
+      const cartItems = populatedUser.cart;
+      return res.status(200).json(cartItems);
+    } catch (populateError) {
+      console.error("Error populating cart items:", populateError);
+      return next(
+        createError(
+          500,
+          "Error populating cart items: " + populateError.message
+        )
+      );
+    }
   } catch (err) {
-    next(err);
+    console.error("Error in getAllCartItems:", err);
+    return next(createError(500, "Failed to fetch cart items: " + err.message));
   }
 };
 
@@ -147,8 +172,6 @@ export const placeOrder = async (req, res, next) => {
       address,
     });
     await order.save();
-
-    user.cart.save();
 
     user.cart = [];
     await user.save();

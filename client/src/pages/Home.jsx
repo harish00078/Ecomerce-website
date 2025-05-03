@@ -38,7 +38,7 @@ const Title = styled.div`
   font-size: 28px;
   font-weight: 500;
   display: flex;
-  justify-content: ${({ center }) => (center ? "center" : "space-between")};
+  justify-content: ${({ $center }) => ($center ? "center" : "space-between")};
   align-items: center;
 `;
 
@@ -80,16 +80,20 @@ const Home = () => {
         <Title>Shop by Categories</Title>
         <CardWrapper>
           {category.map((category) => (
-            <ProductCategoryCard category={category} />
+            <ProductCategoryCard key={category.name} category={category} />
           ))}
         </CardWrapper>
       </Section>
       <Section>
-        <Title center>Our Bestseller</Title>
+        <Title $center>Our Bestseller</Title>
         <CardWrapper>
-          {products.map((product) => (
-            <ProductCard product={product} />
-          ))}
+          {loading ? (
+            <div>Loading products...</div>
+          ) : (
+            products.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))
+          )}
         </CardWrapper>
       </Section>
     </Container>

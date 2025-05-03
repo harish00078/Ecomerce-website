@@ -179,7 +179,7 @@ const ProductDetails = () => {
         );
       });
   };
-  const addCart = async () => {
+  const addToCart = async () => {
     setCartLoading(true);
     const token = localStorage.getItem("krist-app-token");
     await addToCart(token, { productId: product?._id, quantity: 1 })
@@ -262,7 +262,7 @@ const ProductDetails = () => {
                 full
                 outlined
                 isLoading={cartLoading}
-                onClick={() => addCart()}
+                onClick={() => addToCart()}
               />
               <Button text="Buy Now" full />
               <Button

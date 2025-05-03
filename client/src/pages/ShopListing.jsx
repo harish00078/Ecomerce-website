@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import ProductCard from "../components/cards/ProductCard";
 import styled from "styled-components";
-import { category, filter } from "../utils/data";
+import { filter } from "../utils/data";
 import { CircularProgress, Slider } from "@mui/material";
 import { getAllProducts } from "../api";
 
@@ -94,34 +94,74 @@ const ShopListing = () => {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 1000]);
-  const [selectedSizes, setSelectedSizes] = useState(["S", "M", "L", "XL"]); // Default selected sizes
+  const [selectedSizes, setSelectedSizes] = useState(["S", "M", "L", "XL"]);
   const [selectedCategories, setSelectedCategories] = useState([
     "Men",
     "Women",
     "Kids",
     "Bags",
-  ]); // Default selected categories
+  ]);
 
-  const getFilteredProductsData = async () => {
+  const buildQueryString = useCallback(() => {
+    const params = new URLSearchParams();
+    params.append('minPrice', priceRange[0]);
+    params.append('maxPrice', priceRange[1]);
+    
+    if (selectedSizes.length > 0) {
+      params.append('sizes', selectedSizes.join(','));
+    }
+    
+    if (selectedCategories.length > 0) {
+      params.append('categories', selectedCategories.join(','));
+    }
+    
+    return params.toString();
+  }, [priceRange, selectedSizes, selectedCategories]);
+
+  const getFilteredProductsData = useCallback(async () => {
     setLoading(true);
-    // Call the API function for filtered products
-    await getAllProducts(
-      `minPrice=${priceRange[0]}&maxPrice=${priceRange[1]}${
-        selectedSizes.length > 0 ? `&sizes=${selectedSizes.join(",")}` : ""
-      }${
-        selectedCategories.length > 0
-          ? `&categories=${selectedCategories.join(",")}`
-          : ""
-      }`
-    ).then((res) => {
-      setProducts(res.data);
+    try {
+      const queryString = buildQueryString();
+      const response = await getAllProducts(queryString);
+      setProducts(response.data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      // You might want to show an error message to the user here
+    } finally {
       setLoading(false);
-    });
-  };
+    }
+  }, [buildQueryString]);
 
   useEffect(() => {
-    getFilteredProductsData();
-  }, [priceRange, selectedSizes, selectedCategories]);
+    const debounceTimer = setTimeout(() => {
+      getFilteredProductsData();
+    }, 300); // Debounce for 300ms
+
+    return () => clearTimeout(debounceTimer);
+  }, [getFilteredProductsData]);
+
+  const handlePriceChange = useCallback((newRange) => {
+    setPriceRange(newRange);
+  }, []);
+
+  const handleSizeChange = useCallback((size) => {
+    setSelectedSizes(prev => {
+      if (prev.includes(size)) {
+        return prev.filter(s => s !== size);
+      }
+      return [...prev, size];
+    });
+  }, []);
+
+  const handleCategoryChange = useCallback((category) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(category)) {
+        return prev.filter(c => c !== category);
+      }
+      return [...prev, category];
+    });
+  }, []);
+
   return (
     <Container>
       {loading ? (
@@ -131,12 +171,12 @@ const ShopListing = () => {
           <Filters>
             <Menu>
               {filter.map((filters) => (
-                <FilterSection>
+                <FilterSection key={filters.name}>
                   <Title>{filters.name}</Title>
                   {filters.value === "price" ? (
                     <>
                       <Slider
-                        aria-label="Price"
+                        getAriaLabel={() => "Price range"}
                         defaultValue={priceRange}
                         min={0}
                         max={1000}
@@ -145,7 +185,7 @@ const ShopListing = () => {
                           { value: 0, label: "$0" },
                           { value: 1000, label: "$1000" },
                         ]}
-                        onChange={(e, newValue) => setPriceRange(newValue)}
+                        onChange={(e, newValue) => handlePriceChange(newValue)}
                       />
                     </>
                   ) : filters.value === "size" ? (
@@ -154,15 +194,7 @@ const ShopListing = () => {
                         <SelectableItem
                           key={item}
                           selected={selectedSizes.includes(item)}
-                          onClick={() =>
-                            setSelectedSizes((prevSizes) =>
-                              prevSizes.includes(item)
-                                ? prevSizes.filter(
-                                    (category) => category !== item
-                                  )
-                                : [...prevSizes, item]
-                            )
-                          }
+                          onClick={() => handleSizeChange(item)}
                         >
                           {item}
                         </SelectableItem>
@@ -174,15 +206,7 @@ const ShopListing = () => {
                         <SelectableItem
                           key={item}
                           selected={selectedCategories.includes(item)}
-                          onClick={() =>
-                            setSelectedCategories((prevCategories) =>
-                              prevCategories.includes(item)
-                                ? prevCategories.filter(
-                                    (category) => category !== item
-                                  )
-                                : [...prevCategories, item]
-                            )
-                          }
+                          onClick={() => handleCategoryChange(item)}
                         >
                           {item}
                         </SelectableItem>
