@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import styled from "styled-components";
 import TextInput from "../components/TextInput";
 import Button from "../components/Button";
 import { addToCart, deleteFromCart, getCart, placeOrder } from "../api";
-import { useNavigate } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { openSnackbar } from "../redux/reducers/snackbarSlice";
 import { DeleteOutline } from "@mui/icons-material";
+import Authentication from "../pages/Authentication";
 
 const Container = styled.div`
   padding: 20px 30px;
@@ -132,12 +132,13 @@ const Delivery = styled.div`
 `;
 
 const Cart = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [reload, setReload] = useState(false);
   const [products, setProducts] = useState([]);
   const [buttonLoad, setButtonLoad] = useState(false);
+  const [error, setError] = useState(null);
+  const [openAuth, setOpenAuth] = useState(false);
 
   const [deliveryDetails, setDeliveryDetails] = useState({
     firstName: "",
@@ -147,14 +148,33 @@ const Cart = () => {
     completeAddress: "",
   });
 
-  const getProducts = async () => {
+  const getProducts = useCallback(async () => {
     setLoading(true);
+    setError(null);
     const token = localStorage.getItem("krist-app-token");
-    await getCart(token).then((res) => {
-      setProducts(res.data);
+
+    if (!token) {
+      setError("Please log in to view your cart");
       setLoading(false);
-    });
-  };
+      setOpenAuth(true);
+      return;
+    }
+
+    try {
+      const res = await getCart(token);
+      setProducts(res.data);
+    } catch (err) {
+      console.error("Error fetching cart:", err);
+      setError(err.response?.data?.message || "Failed to load cart items");
+      if (err.response?.status === 401) {
+        // Token expired or invalid
+        localStorage.removeItem("krist-app-token");
+        setOpenAuth(true);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const addCart = async (id) => {
     const token = localStorage.getItem("krist-app-token");
@@ -175,7 +195,8 @@ const Cart = () => {
 
   const removeCart = async (id, quantity, type) => {
     const token = localStorage.getItem("krist-app-token");
-    let qnt = quantity > 0 ? 1 : null;
+
+    let qnt = quantity;
     if (type === "full") qnt = null;
     await deleteFromCart(token, {
       productId: id,
@@ -204,7 +225,7 @@ const Cart = () => {
 
   useEffect(() => {
     getProducts();
-  }, [reload]);
+  }, [reload, getProducts]);
 
   const convertAddressToString = (addressObj) => {
     // Convert the address object to a string representation
@@ -262,6 +283,19 @@ const Cart = () => {
       setButtonLoad(false);
     }
   };
+
+  if (error) {
+    return (
+      <Container>
+        <Section>
+          <Title center>Error</Title>
+          <div style={{ color: "red" }}>{error}</div>
+          <Button onClick={() => setOpenAuth(true)}>Login</Button>
+        </Section>
+      </Container>
+    );
+  }
+
   return (
     <Container>
       {loading ? (
@@ -303,9 +337,7 @@ const Cart = () => {
                             cursor: "pointer",
                             flex: 1,
                           }}
-                          onClick={() =>
-                            removeCart(item?.product?._id, item?.quantity - 1)
-                          }
+                          onClick={() => removeCart(item?.product?._id, 1)}
                         >
                           -
                         </div>
@@ -329,11 +361,7 @@ const Cart = () => {
                       <DeleteOutline
                         sx={{ color: "red" }}
                         onClick={() =>
-                          removeCart(
-                            item?.product?._id,
-                            item?.quantity - 1,
-                            "full"
-                          )
+                          removeCart(item?.product?._id, 0, "full")
                         }
                       />
                     </TableItem>
@@ -440,6 +468,9 @@ const Cart = () => {
             </Wrapper>
           )}
         </Section>
+      )}
+      {openAuth && (
+        <Authentication openAuth={openAuth} setOpenAuth={setOpenAuth} />
       )}
     </Container>
   );

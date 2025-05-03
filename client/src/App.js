@@ -6,10 +6,8 @@ import Home from "./pages/Home";
 import { useState } from "react";
 import Authentication from "./pages/Authentication";
 import ShopListing from "./pages/ShopListing";
-import Favourite from "./pages/Favourite";
 import Cart from "./pages/Cart";
 import ProductDetails from "./pages/ProductDetails";
-// import NewArrival from "./pages/NewArrival";
 import Orders from "./pages/Orders";
 import Contact from "./pages/Contact";
 import { useSelector } from "react-redux";
@@ -39,10 +37,8 @@ function App() {
           <Routes>
             <Route path="/" exact element={<Home />} />
             <Route path="/shop" exact element={<ShopListing />} />
-            <Route path="/favorite" exact element={<Favourite />} />
             <Route path="/cart" exact element={<Cart />} />
             <Route path="/shop/:id" exact element={<ProductDetails />} />
-
             <Route path="/Orders" exact element={<Orders />} />
             <Route path="/Contact" exact element={<Contact />} />
           </Routes>

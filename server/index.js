@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import * as dotenv from "dotenv";
 import UserRouter from "./routes/User.js";
 import ProductRoutes from "./routes/Products.js";
+import { initializeSampleProducts } from "./controllers/Products.js";
 dotenv.config();
 
 const app = express();
@@ -15,6 +16,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use((err, req, res, next) => {
   const status = err.status || 500;
   const message = err.message || "Something went wrong";
+  console.error("Error details:", {
+    status,
+    message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    body: req.body,
+    user: req.user,
+  });
   return res.status(status).json({
     success: false,
     status,
@@ -31,23 +41,27 @@ app.get("/", async (req, res) => {
 app.use("/api/user/", UserRouter);
 app.use("/api/products/", ProductRoutes);
 
-const connectDB = () => {
-  mongoose.set("strictQuery", true);
-  mongoose
-    .connect(process.env.MongoDBURI)
-    .then(() => console.log("Connected to MONGO DB"))
-    .catch((err) => {
-      console.error("failed to connect with mongo");
-      console.error(err);
-    });
+const connectDB = async () => {
+  try {
+    mongoose.set("strictQuery", true);
+    await mongoose.connect(process.env.MongoDBURI);
+    console.log("Connected to MongoDB successfully");
+
+    // Initialize sample products after successful connection
+    await initializeSampleProducts();
+  } catch (err) {
+    console.error("Failed to connect to MongoDB:", err);
+    process.exit(1);
+  }
 };
 
 const startServer = async () => {
   try {
-    connectDB();
+    await connectDB();
     app.listen(8080, () => console.log("Server started on port 8080"));
   } catch (error) {
-    console.log(error);
+    console.error("Failed to start server:", error);
+    process.exit(1);
   }
 };
 

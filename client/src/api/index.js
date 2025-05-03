@@ -30,23 +30,6 @@ export const deleteFromCart = async (token, data) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
-//Favourites
-
-export const getFavourite = async (token) =>
-  await API.get(`/user/favorite`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-export const addToFavourite = async (token, data) =>
-  await API.post(`/user/favorite/`, data, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-export const deleteFromFavourite = async (token, data) =>
-  await API.patch(`/user/favorite/`, data, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
 //Orders
 
 export const placeOrder = async (token, data) =>

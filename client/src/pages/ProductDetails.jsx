@@ -1,18 +1,11 @@
 import { CircularProgress, Rating } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import styled from "styled-components";
 import Button from "../components/Button";
-import { FavoriteBorder, FavoriteRounded } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import { openSnackbar } from "../redux/reducers/snackbarSlice";
 import { useDispatch } from "react-redux";
-import {
-  addToCart,
-  addToFavourite,
-  deleteFromFavourite,
-  getFavourite,
-  getProductDetails,
-} from "../api";
+import { addToCart, getProductDetails } from "../api";
 
 const Container = styled.div`
   display: flex;
@@ -124,6 +117,7 @@ const ButtonWrapper = styled.div`
   gap: 16px;
   padding: 32px 0px;
 `;
+
 const ProductDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
@@ -131,55 +125,26 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(false);
   const [product, setProduct] = useState();
   const [selected, setSelected] = useState();
-  const [favorite, setFavorite] = useState(false);
-  const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [cartLoading, setCartLoading] = useState(false);
 
-  const getProduct = async () => {
+  const getProduct = useCallback(async () => {
     setLoading(true);
-    await getProductDetails(id).then((res) => {
-      setProduct(res.data);
+    try {
+      const response = await getProductDetails(id);
+      setProduct(response.data);
+    } catch (error) {
+      dispatch(
+        openSnackbar({
+          message: error.message || "Failed to fetch product details",
+          severity: "error",
+        })
+      );
+    } finally {
       setLoading(false);
-    });
-  };
+    }
+  }, [id, dispatch]);
 
-  const addFavorite = async () => {
-    setFavoriteLoading(true);
-    const token = localStorage.getItem("krist-app-token");
-    await addToFavourite(token, { productID: product?._id })
-      .then((res) => {
-        setFavorite(true);
-        setFavoriteLoading(false);
-      })
-      .catch((err) => {
-        setFavoriteLoading(false);
-        dispatch(
-          openSnackbar({
-            message: err.message,
-            severity: "error",
-          })
-        );
-      });
-  };
-  const removeFavorite = async () => {
-    setFavoriteLoading(true);
-    const token = localStorage.getItem("krist-app-token");
-    await deleteFromFavourite(token, { productID: product?._id })
-      .then((res) => {
-        setFavorite(false);
-        setFavoriteLoading(false);
-      })
-      .catch((err) => {
-        setFavoriteLoading(false);
-        dispatch(
-          openSnackbar({
-            message: err.message,
-            severity: "error",
-          })
-        );
-      });
-  };
-  const addToCart = async () => {
+  const handleAddToCart = async () => {
     setCartLoading(true);
     const token = localStorage.getItem("krist-app-token");
     await addToCart(token, { productId: product?._id, quantity: 1 })
@@ -197,32 +162,10 @@ const ProductDetails = () => {
         );
       });
   };
-  const checkFavourite = async () => {
-    setFavoriteLoading(true);
-    const token = localStorage.getItem("krist-app-token");
-    await getFavourite(token, { productId: product?._id })
-      .then((res) => {
-        const isFavorite = res.data?.some(
-          (favorite) => favorite._id === product?._id
-        );
-        setFavorite(isFavorite);
-        setFavoriteLoading(false);
-      })
-      .catch((err) => {
-        setFavoriteLoading(false);
-        dispatch(
-          openSnackbar({
-            message: err.message,
-            severity: "error",
-          })
-        );
-      });
-  };
 
   useEffect(() => {
     getProduct();
-    checkFavourite();
-  }, []);
+  }, [getProduct]);
 
   return (
     <Container>
@@ -248,6 +191,7 @@ const ProductDetails = () => {
               <Items>
                 {product?.sizes.map((size) => (
                   <Item
+                    key={size}
                     selected={selected === size}
                     onClick={() => setSelected(size)}
                   >
@@ -258,25 +202,9 @@ const ProductDetails = () => {
             </Sizes>
             <ButtonWrapper>
               <Button
-                text="Add to Cart"
-                full
-                outlined
-                isLoading={cartLoading}
-                onClick={() => addToCart()}
-              />
-              <Button text="Buy Now" full />
-              <Button
-                leftIcon={
-                  favorite ? (
-                    <FavoriteRounded sx={{ fontSize: "22px", color: "red" }} />
-                  ) : (
-                    <FavoriteBorder sx={{ fontSize: "22px" }} />
-                  )
-                }
-                full
-                outlined
-                isLoading={favoriteLoading}
-                onClick={() => (favorite ? removeFavorite() : addFavorite())}
+                text={cartLoading ? "Adding..." : "Add to Cart"}
+                onClick={handleAddToCart}
+                disabled={cartLoading}
               />
             </ButtonWrapper>
           </Details>

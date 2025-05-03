@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { createError } from "../error.js";
 import User from "../models/User.js";
 import Orders from "../models/Orders.js";
+import mongoose from "mongoose";
 
 dotenv.config();
 
@@ -65,10 +66,28 @@ export const addToCart = async (req, res, next) => {
   try {
     const { productId, quantity } = req.body;
     const userJWT = req.user;
+
+    if (!productId) {
+      return next(createError(400, "Product ID is required"));
+    }
+
+    if (!mongoose.isValidObjectId(productId)) {
+      return next(createError(400, "Invalid product ID format"));
+    }
+
+    if (!quantity || quantity <= 0) {
+      return next(createError(400, "Quantity must be greater than 0"));
+    }
+
     const user = await User.findById(userJWT.id);
+    if (!user) {
+      return next(createError(404, "User not found"));
+    }
+
     const existingCartItemIndex = user.cart.findIndex((item) =>
       item?.product?.equals(productId)
     );
+
     if (existingCartItemIndex !== -1) {
       // Product is already in the cart, update the quantity
       user.cart[existingCartItemIndex].quantity += quantity;
@@ -76,13 +95,17 @@ export const addToCart = async (req, res, next) => {
       // Product is not in the cart, add it
       user.cart.push({ product: productId, quantity });
     }
+
     await user.save();
 
     return res
       .status(200)
       .json({ message: "Product added to cart successfully", user });
   } catch (err) {
-    next(err);
+    console.error("Error in addToCart:", err);
+    return next(
+      createError(500, "Failed to add product to cart: " + err.message)
+    );
   }
 };
 

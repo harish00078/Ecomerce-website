@@ -104,17 +104,17 @@ const ShopListing = () => {
 
   const buildQueryString = useCallback(() => {
     const params = new URLSearchParams();
-    params.append('minPrice', priceRange[0]);
-    params.append('maxPrice', priceRange[1]);
-    
+    params.append("minPrice", priceRange[0]);
+    params.append("maxPrice", priceRange[1]);
+
     if (selectedSizes.length > 0) {
-      params.append('sizes', selectedSizes.join(','));
+      params.append("sizes", selectedSizes.join(","));
     }
-    
+
     if (selectedCategories.length > 0) {
-      params.append('categories', selectedCategories.join(','));
+      params.append("categories", selectedCategories.join(","));
     }
-    
+
     return params.toString();
   }, [priceRange, selectedSizes, selectedCategories]);
 
@@ -122,11 +122,14 @@ const ShopListing = () => {
     setLoading(true);
     try {
       const queryString = buildQueryString();
+      console.log("Fetching products with query:", queryString);
       const response = await getAllProducts(queryString);
+      console.log("Received products:", response.data);
       setProducts(response.data);
     } catch (error) {
-      console.error('Error fetching products:', error);
-      // You might want to show an error message to the user here
+      console.error("Error fetching products:", error);
+      // Show error message to user
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -145,18 +148,18 @@ const ShopListing = () => {
   }, []);
 
   const handleSizeChange = useCallback((size) => {
-    setSelectedSizes(prev => {
+    setSelectedSizes((prev) => {
       if (prev.includes(size)) {
-        return prev.filter(s => s !== size);
+        return prev.filter((s) => s !== size);
       }
       return [...prev, size];
     });
   }, []);
 
   const handleCategoryChange = useCallback((category) => {
-    setSelectedCategories(prev => {
+    setSelectedCategories((prev) => {
       if (prev.includes(category)) {
-        return prev.filter(c => c !== category);
+        return prev.filter((c) => c !== category);
       }
       return [...prev, category];
     });
