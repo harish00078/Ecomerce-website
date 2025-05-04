@@ -104,6 +104,7 @@ const sampleProducts = [
     price: { org: 29.99, mrp: 39.99, off: 25 },
     sizes: ["S", "M", "L", "XL"],
     category: ["Men"],
+    link: "https://unsplash.com/photos/3TLl_97HNJo"
   },
   {
     title: "Floral Summer Dress",
@@ -113,62 +114,20 @@ const sampleProducts = [
     price: { org: 49.99, mrp: 69.99, off: 30 },
     sizes: ["S", "M", "L"],
     category: ["Women"],
+    link: "https://unsplash.com/photos/nGrfKmtwv24"
   },
   {
-    title: "Sports Running Shoes",
-    name: "Running Shoes",
-    desc: "Breathable and lightweight running shoes for men",
-    img: "https://images.unsplash.com/photo-1528701800484-928142bda45f?auto=format&fit=crop&w=800&q=80",
-    price: { org: 69.99, mrp: 89.99, off: 22 },
-    sizes: ["7", "8", "9", "10"],
-    category: ["Footwear"],
-  },
-  {
-    title: "Women's Sunglasses",
-    name: "Stylish Shades",
-    desc: "UV-protected stylish sunglasses for women",
-    img: "https://images.unsplash.com/photo-1520975919532-8f46bfb2e5c4?auto=format&fit=crop&w=800&q=80",
-    price: { org: 19.99, mrp: 29.99, off: 33 },
+    title: "Casual Jeans",
+    name: "Denim Jeans",
+    desc: "Classic denim jeans, perfect for everyday wear",
+    img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=880&q=80",
+    price: { org: 59.99, mrp: 79.99, off: 30 },
     sizes: ["One Size"],
-    category: ["Accessories"],
+    link: "https://unsplash.com/photos/3TLl_97HNJo"
   },
-  {
-    title: "Men's Wrist Watch",
-    name: "Leather Watch",
-    desc: "Elegant leather strap analog wrist watch for men",
-    img: "https://images.unsplash.com/photo-1611572659799-f1ec0e3e9dcb?auto=format&fit=crop&w=800&q=80",
-    price: { org: 149.99, mrp: 179.99, off: 17 },
-    sizes: ["One Size"],
-    category: ["Accessories"],
-  },
-  {
-    title: "Yoga Pants",
-    name: "Comfort Fit Leggings",
-    desc: "Stretchable and breathable yoga pants for women",
-    img: "https://images.unsplash.com/photo-1589987601133-3c3903b9fc88?auto=format&fit=crop&w=800&q=80",
-    price: { org: 39.99, mrp: 59.99, off: 33 },
-    sizes: ["S", "M", "L"],
-    category: ["Women", "Sportswear"],
-  },
-  {
-    title: "Boys Sports Tracksuit",
-    name: "Kids Tracksuit",
-    desc: "Comfortable tracksuit set for boys, perfect for sports",
-    img: "https://images.unsplash.com/photo-1581613443722-503eac2f6b9b?auto=format&fit=crop&w=800&q=80",
-    price: { org: 44.99, mrp: 59.99, off: 25 },
-    sizes: ["S", "M", "L"],
-    category: ["Kids", "Sportswear"],
-  },
-  {
-    title: "Elegant Evening Gown",
-    name: "Evening Dress",
-    desc: "Luxurious full-length gown for formal occasions",
-    img: "https://images.unsplash.com/photo-1593032457862-3445e5b3ff6c?auto=format&fit=crop&w=800&q=80",
-    price: { org: 199.99, mrp: 249.99, off: 20 },
-    sizes: ["M", "L", "XL"],
-    category: ["Women"],
-  },
+  
 ];
+
 
 // Initialize sample products if DB is empty
 export const initializeSampleProducts = async () => {
